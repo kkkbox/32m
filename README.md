@@ -23,7 +23,7 @@ service xray stop
 ### 基于xray的vless+reality
 #### 执行命令：
 ```
-apk update && wget https://raw.githubusercontent.com/lgdlkq/32m/main/xr_install.sh -O xr_install.sh && ash xr_install.sh
+apk update && wget https://raw.githubusercontent.com/kkkbox/32m/main/xr_install.sh -O xr_install.sh && ash xr_install.sh
 ```
 #### 完全删除命令：
 
@@ -33,6 +33,21 @@ rc-update del xray default
 rm -f /etc/init.d/xray
 cd /root 
 rm -rf ./Xray
+```
+## sb_install.sh
+### 基于singbox的vless+reality
+#### 执行命令：
+```
+apk update && wget https://raw.githubusercontent.com/kkkbox/32m/main/sb_install.sh -O sb_install.sh && ash sb_install.sh
+```
+#### 完全删除命令：
+
+```
+service sing-box stop
+rc-update del sing-box default
+rm -f /etc/init.d/sing-box
+rm -rf /root/singbox
+echo "Sing-box 已彻底卸载并清理完毕！"
 ```
 
 ## apline_vm_ws_tls.sh
