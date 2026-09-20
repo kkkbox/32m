@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>i686架构apline系统节点搭建</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292e;
+            background-color: #f6f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #24292e;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid #eaecef;
+        }
+        h2 {
+            font-size: 1.5em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid #eaecef;
+        }
+        h3 {
+            font-size: 1.25em;
+        }
+        h4 {
+            font-size: 1em;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        li {
+            margin-bottom: 0.25em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>i686架构apline系统节点搭建</h1>
+        <p>暂时只支持ipv4，ipv6没写（没机器测试）</p>
+
+        <h2>下述脚本通用命令：</h2>
+        
+        <h4>查看运行状态：</h4>
+        <pre><code>service xray status</code></pre>
+        
+        <h4>启动：</h4>
+        <pre><code>service xray start</code></pre>
+        
+        <h4>重启：</h4>
+        <pre><code>service xray restart</code></pre>
+        
+        <h4>停止：</h4>
+        <pre><code>service xray stop</code></pre>
+
+        <h2>xr_install.sh</h2>
+        
+        <h3>基于xray的vless+reality</h3>
+        
+        <h4>执行命令：</h4>
+        <pre><code>apk update && wget https://raw.githubusercontent.com/lgdlkq/32m/main/xr_install.sh -O xr_install.sh && ash xr_install.sh</code></pre>
+        
+        <h4>完全删除命令：</h4>
+        <pre><code>service xray stop
+rc-update del xray default
+rm -f /etc/init.d/xray
+cd /root 
+rm -rf ./Xray</code></pre>
+
+        <h2>apline_vm_ws_tls.sh</h2>
+        
+        <h3>基于xray的vmess+ws+tls（包含nat端口转发配置，便于将高位端口转发到cf支持的https端口）</h3>
+        
+        <h4>前提：</h4>
+        <ol>
+            <li>开始前请在cf中添加域名解析并开启小云朵，ssl选择“完全”；</li>
+            <li>在1的基础上依次点击“规则”——>“Origin Rules”——>“创建规则”，填写规则名称，“字段”选择“主机名”，“值”填入前面解析好的域名。“目标端口”选择“重写到”，输入nat小鸡提供的可用高位端口（非ssh端口），最后点击“部署”完成设置；</li>
+            <li>前面两个步骤也可在脚本执行完成后配置，注意规则中配置的端口号须保证与nat服务器配置的高位端口一致。</li>
+            <li>运行脚本前请自备证书，可使用cf的15年证书。（暂不考虑自动申请证书）</li>
+        </ol>
+
+        <h4>重点说明：</h4>
+        <ol>
+            <li>脚本执行如果nat服务器已完成了端口映射（映射的内部端口为cf支持的https端口），则在脚本执行到“服务商已提供映射或可通过操作面板完成映射？1.是；2.否; other.退出(默认为2)”时输入1；</li>
+            <li>如果nat服务器未进行端口映射，但提供了操作面板进行端口映射，则在脚本执行到“服务商已提供映射或可通过操作面板完成映射？1.是；2.否; other.退出(默认为2)”时输入1，并到面板手动配置映射端口；</li>
+            <li>否则请默认执行（或输入2），并在接下来输入cloudflare规则配置时的高位端口号。 </li>
+        </ol>
+
+        <h4>执行命令：</h4>
+        <pre><code>apk update && wget https://raw.githubusercontent.com/lgdlkq/32m/main/apline_vm_ws_tls.sh -O apline_vm_ws_tls.sh && ash apline_vm_ws_tls.sh</code></pre>
+
+        <h4>完全删除命令：</h4>
+        <pre><code>service xray stop
+rc-update del xray default
+rm -f /etc/init.d/xray
+cd /root 
+rm -rf ./Xray
+iptables -t nat -F PREROUTING
+rm -f /etc/iptables/rules.v4
+apk del iptables</code></pre>
+
+        <h2>其他</h2>
+        <p>写的比较简单，留着给自己做个记录，有时间了再整理整合。</p>
+    </div>
+</body>
+</html>
